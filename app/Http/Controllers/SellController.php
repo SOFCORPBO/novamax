@@ -73,7 +73,8 @@ class SellController extends Controller
      *
      * @return \Illuminate\Http\Response
      */
-    public function index()
+ 
+public function index()
     {
         $is_admin = $this->businessUtil->is_admin(auth()->user());
 
@@ -96,6 +97,10 @@ class SellController extends Controller
             $sale_type = ! empty(request()->input('sale_type')) ? request()->input('sale_type') : 'sell';
 
             $sells = $this->transactionUtil->getListSells($business_id, $sale_type);
+            
+            // --- MODIFICACIÓN 1: Leemos la columna correcta de la BD ---
+            $sells->addSelect('transactions.additional_expense_value_4');
+            // ----------------------------------------------------------
 
             // only display sell invoice we add it because project invoive show in sell list
             if($sale_type == 'sell'){
@@ -508,6 +513,29 @@ class SellController extends Controller
                     }
                 )
                 ->removeColumn('id')
+
+                // --- MODIFICACIÓN 2: SINCRONIZACIÓN Y CÁLCULO DE DINERO ---
+                ->addColumn('conatct_name', function($row){
+                    return (!empty($row->supplier_business_name) ? $row->supplier_business_name . ', <br>' : '') . $row->name;
+                })
+                ->addColumn('payment_surcharge', function ($row) {
+                    // Usamos la columna real de la base de datos donde se guarda el 3.61
+                    $recargo = isset($row->additional_expense_value_4) ? (float)$row->additional_expense_value_4 : 0;
+                    return 'Bs. ' . number_format($recargo, 2, '.', ',');
+                })
+                ->addColumn('costo_base', function ($row) {
+                    $recargo = isset($row->additional_expense_value_4) ? (float)$row->additional_expense_value_4 : 0;
+                    $total = !empty($row->final_total) ? (float)$row->final_total : 0;
+                    // Restamos el recargo del total final
+                    $costo_base = $total - $recargo;
+                    return 'Bs. ' . number_format($costo_base, 2, '.', ',');
+                })
+                ->addColumn('return_due', function ($row) {
+                    $return_due = $row->amount_return - $row->return_paid;
+                    return '<span class="sell_return_due">' . $this->transactionUtil->num_f($return_due, true) . '</span>';
+                })
+                // ---------------------------------------------------------
+
                 ->editColumn(
                     'final_total',
                     '<span class="final-total" data-orig-value="{{$final_total}}">@format_currency($final_total)</span>'
@@ -555,15 +583,6 @@ class SellController extends Controller
 
                     return $total_remaining_html;
                 })
-                ->addColumn('return_due', function ($row) {
-                    $return_due_html = '';
-                    if (!empty($row->return_exists)) {
-                        $return_due = $row->amount_return - $row->return_paid;
-                        $return_due_html .= '<a href="' . action([\App\Http\Controllers\TransactionPaymentController::class, 'show'], [$row->return_transaction_id]) . '" class="view_purchase_return_payment_modal"><span class="sell_return_due" data-orig-value="' . $return_due . '">' . $this->transactionUtil->num_f($return_due, true) . '</span></a>';
-                    }
-
-                    return $return_due_html;
-                })
                 ->editColumn('invoice_no', function ($row) use ($is_crm) {
                     $invoice_no = $row->invoice_no;
                     if (! empty($row->woocommerce_order_id)) {
@@ -596,7 +615,6 @@ class SellController extends Controller
 
                     return $status;
                 })
-                ->addColumn('conatct_name', '@if(!empty($supplier_business_name)) {{$supplier_business_name}}, <br> @endif {{$name}}')
                 ->editColumn('total_items', '{{@format_quantity($total_items)}}')
                 ->filterColumn('conatct_name', function ($query, $keyword) {
                     $query->where(function ($q) use ($keyword) {
@@ -654,7 +672,9 @@ class SellController extends Controller
                         }
                     }, ]);
 
-            $rawColumns = ['final_total', 'action', 'total_paid', 'total_remaining', 'payment_status', 'invoice_no', 'discount_amount', 'tax_amount', 'total_before_tax', 'shipping_status', 'types_of_service_name', 'payment_methods', 'return_due', 'conatct_name', 'status', 'zatca_status'];
+            // --- MODIFICACIÓN 3: Se añaden las columnas al rawColumns ---
+            $rawColumns = ['final_total', 'action', 'total_paid', 'total_remaining', 'payment_status', 'invoice_no', 'discount_amount', 'tax_amount', 'total_before_tax', 'shipping_status', 'types_of_service_name', 'payment_methods', 'return_due', 'conatct_name', 'status', 'zatca_status', 'payment_surcharge', 'costo_base'];
+            // -------------------------------------------------------------
 
             return $datatable->rawColumns($rawColumns)
                       ->make(true);
@@ -690,7 +710,6 @@ class SellController extends Controller
         return view('sell.index')
         ->with(compact('business_locations', 'customers', 'is_woocommerce', 'sales_representative', 'is_cmsn_agent_enabled', 'commission_agents', 'service_staffs', 'is_tables_enabled', 'is_service_staff_enabled', 'is_types_service_enabled', 'shipping_statuses', 'sources', 'payment_types'));
     }
-
     /**
      * Show the form for creating a new resource.
      *

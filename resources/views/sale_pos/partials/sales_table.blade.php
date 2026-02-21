@@ -12,7 +12,10 @@
             <th>@lang('sale.location')</th>
             <th>@lang('sale.payment_status')</th>
             <th>@lang('lang_v1.payment_method')</th>
-            <th>@lang('sale.total_amount')</th>
+            
+            <th>Costo Base</th>
+            <th>Recargo de Pago</th>
+            <th>Total Final</th>
             <th>@lang('sale.total_paid')</th>
             <th>@lang('lang_v1.sell_due')</th>
             <th>@lang('lang_v1.sell_return_due')</th>
@@ -33,6 +36,9 @@
             <td colspan="6"><strong>@lang('sale.total'):</strong></td>
             <td class="footer_payment_status_count"></td>
             <td class="payment_method_count"></td>
+            
+            <td class="footer_costo_base"></td>
+            <td class="footer_payment_surcharge"></td>
             <td class="footer_sale_total"></td>
             <td class="footer_total_paid"></td>
             <td class="footer_total_remaining"></td>

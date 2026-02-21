@@ -22,7 +22,6 @@ sell_table = $('#sell_table').DataTable({
         processing: true,
         serverSide: true,
         fixedHeader:false,
-        fixedHeader:false,
         aaSorting: [[1, 'desc']],
         scrollY: "75vh",
         scrollX:        true,
@@ -78,7 +77,13 @@ sell_table = $('#sell_table').DataTable({
             { data: 'business_location', name: 'bl.name'},
             { data: 'payment_status', name: 'payment_status'},
             { data: 'payment_methods', orderable: false, "searchable": false},
+            
+            // INICIO MODIFICACIÓN: Columnas de montos desglosados
+            { data: 'costo_base', name: 'costo_base', orderable: false, "searchable": false},
+            { data: 'payment_surcharge', name: 'payment_surcharge', orderable: false, "searchable": false},
             { data: 'final_total', name: 'final_total'},
+            // FIN MODIFICACIÓN
+
             { data: 'total_paid', name: 'total_paid', "searchable": false},
             { data: 'total_remaining', name: 'total_remaining'},
             { data: 'return_due', orderable: false, "searchable": false},

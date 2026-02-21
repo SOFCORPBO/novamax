@@ -3,13 +3,11 @@
 
 @section('content')
 
-    <!-- Content Header (Page header) -->
     <section class="content-header no-print">
         <h1  class="tw-text-xl md:tw-text-3xl tw-font-bold tw-text-black">@lang('sale.sells')
         </h1>
     </section>
 
-    <!-- Main content -->
     <section class="content no-print">
         @component('components.filters', ['title' => __('report.filters')])
             @include('sell.partials.sell_list_filters')
@@ -74,7 +72,10 @@
                             <th>@lang('sale.location')</th>
                             <th>@lang('sale.payment_status')</th>
                             <th>@lang('lang_v1.payment_method')</th>
-                            <th>@lang('sale.total_amount')</th>
+                            
+                            <th>Costo Base</th>
+                            <th>Recargo de Pago</th>
+                            <th>Total Final</th>
                             <th>@lang('sale.total_paid')</th>
                             <th>@lang('lang_v1.sell_due')</th>
                             <th>@lang('lang_v1.sell_return_due')</th>
@@ -101,6 +102,9 @@
                             <td colspan="6"><strong>@lang('sale.total'):</strong></td>
                             <td class="footer_payment_status_count"></td>
                             <td class="payment_method_count"></td>
+                            
+                            <td class="footer_costo_base"></td>
+                            <td class="footer_payment_surcharge"></td>
                             <td class="footer_sale_total"></td>
                             <td class="footer_total_paid"></td>
                             <td class="footer_total_remaining"></td>
@@ -114,14 +118,12 @@
             @endif
         @endcomponent
     </section>
-    <!-- /.content -->
     <div class="modal fade payment_modal" tabindex="-1" role="dialog" aria-labelledby="gridSystemModalLabel">
     </div>
 
     <div class="modal fade edit_payment_modal" tabindex="-1" role="dialog" aria-labelledby="gridSystemModalLabel">
     </div>
 
-    <!-- This will be printed -->
     <section class="invoice print_section" id="receipt_section">
         </section> 
 
@@ -228,10 +230,26 @@
                         orderable: false,
                         "searchable": false
                     },
+                    
+                    // INICIO MODIFICACIÓN: Agregando las variables al Datatable
+                    {
+                        data: 'costo_base',
+                        name: 'costo_base',
+                        orderable: false,
+                        "searchable": false
+                    },
+                    {
+                        data: 'payment_surcharge',
+                        name: 'payment_surcharge',
+                        orderable: false,
+                        "searchable": false
+                    },
                     {
                         data: 'final_total',
                         name: 'final_total'
                     },
+                    // FIN MODIFICACIÓN
+
                     {
                         data: 'total_paid',
                         name: 'total_paid',
